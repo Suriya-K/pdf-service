@@ -5,7 +5,7 @@ interface DcvHealth {
   name_disease: string
   important: number
   urgent: number
-  disease_score: number
+  disease_score: string
   supplement: string
   intro: string
   checkup: string
@@ -14,13 +14,8 @@ interface DcvHealth {
 }
 
 interface DcvHealthLists {
-  code?: string
-  score?: string
-}
-
-interface HealthScore {
   sample?: Input
-  score_lists?: DcvHealthLists[]
+  health_lists?: DcvHealth[]
 }
 
 interface Input {

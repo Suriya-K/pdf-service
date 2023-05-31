@@ -4,23 +4,27 @@ import csvtojson from 'csvtojson'
 
 export default class DcvHealthsController {
   public async create({ request, response }: HttpContextContract) {
-    const test = await this.calculatedDiseaseScore()
+    const test = await this.getSampleDieaseByGroup()
     return response.json({ data: test })
   }
 
-  private async calculatedDiseaseScore() {
-    let healthScore: HealthScore[] = []
+  private async getSampleDieaseByGroup() {
     const input_data: Input[] = await this.readInputCsv()
     const reference: DcvHealth[] = await this.readReference()
+    return this.calulateScore(input_data, reference)
+  }
+
+  private calulateScore(input_data, reference) {
+    let healthScore: DcvHealthLists[] = []
     const TOTAL_SCORE: number = 100 * 3 * 3
     const MAX_SCORE: number = 10
 
     input_data.map((data) => {
-      let health: HealthScore = {}
+      let health: DcvHealthLists = {}
       health.sample = data
-      health.score_lists = reference.map((ref) => {
+      health.health_lists = reference.map((ref: DcvHealth) => {
         // exclude disease that are spicific gender
-        if (data.sex === ref.sex_exclude) return {}
+        if (data.sex === ref.sex_exclude) return
 
         const sample_score = data['sample.perc']
         const ref_im = ref.important
@@ -28,8 +32,8 @@ export default class DcvHealthsController {
 
         // calulated score 0 ... 10
         const score = ((sample_score * ref_im * ref_ur) / TOTAL_SCORE) * MAX_SCORE
-
-        return { code: ref.code, score: score.toFixed(2) }
+        ref.disease_score = score.toFixed(2)
+        return ref
       })
       healthScore.push(health)
     })
