@@ -21,7 +21,13 @@ export default class DcvHealthsController {
 
     input_data.map((data) => {
       let health: DcvHealthLists = {}
-      health.sample = data
+      
+      // Change Key That contains Dot to Underscore
+      health.sample = {
+        sample_number: data.sample_number,
+        sex: data.sex,
+        sample_perc: data['sample.perc'],
+      }
       health.health_lists = reference.map((ref: DcvHealth) => {
         // exclude disease that are spicific gender
         if (data.sex === ref.sex_exclude) return
