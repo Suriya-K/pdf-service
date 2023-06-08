@@ -24,4 +24,5 @@ Route.get('/', async () => {
   return { hello: 'world' }
 })
 
-Route.get('/test','DcvHealthsController.create');
+Route.get('/dcv-get','DcvHealthsController.get');
+Route.get('/dcv-get/:id','DcvHealthsController.getId');

@@ -2,10 +2,10 @@ interface DcvHealth {
   code: string
   category: string
   group: string
-  name_disease: string
+  risk_disease: string
   important: number
   urgent: number
-  disease_score: string
+  disease_score: number
   supplement: string
   intro: string
   checkup: string
@@ -19,6 +19,7 @@ interface DcvHealthLists {
 }
 
 interface Input {
+  code: string
   sample_number: string
   sex: string
   sample_perc: number
