@@ -3,6 +3,17 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import csvtojson from 'csvtojson'
 
 export default class DcvHealthsController {
+  public async postFile({ request, response }: HttpContextContract) {
+    const csvFile = request.file('csv')
+    if (csvFile) {
+      await csvFile.move(Application.resourcesPath('/report-csv'), {
+        name: 'sample_dcv_h_input',
+        overwrite: true,
+      })
+      return response.status(200).send('upload file successfully')
+    }
+  }
+
   public async get({ response }: HttpContextContract) {
     const sample = await this.getAllSampleDiease()
     return response.json({ data: sample })
@@ -90,7 +101,6 @@ export default class DcvHealthsController {
     input_data.forEach((input: Input, index) => {
       if (!healthScore[capitalizedID]) healthScore[capitalizedID] = []
 
-      
       if (input.sample_number === capitalizedID) {
         const filterReference = reference.filter((ref) => {
           if (input.code === ref.code && input.sex !== ref.sex_exclude) {
