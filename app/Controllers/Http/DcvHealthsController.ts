@@ -7,7 +7,7 @@ export default class DcvHealthsController {
     const csvFile = request.file('csv')
     if (csvFile) {
       await csvFile.move(Application.resourcesPath('/report-csv'), {
-        name: 'sample_dcv_h_input',
+        name: 'sample_dcv_h_input.csv',
         overwrite: true,
       })
       return response.status(200).send('upload file successfully')
