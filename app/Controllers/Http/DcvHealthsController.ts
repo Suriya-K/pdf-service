@@ -98,7 +98,7 @@ export default class DcvHealthsController {
     const TOTAL_SCORE: number = 100 * 3 * 3
     const MAX_SCORE: number = 10
 
-    input_data.forEach((input: Input, index) => {
+    input_data.forEach((input: Input) => {
       if (!healthScore[capitalizedID]) healthScore[capitalizedID] = []
 
       if (input.sample_number === capitalizedID) {
