@@ -13,8 +13,9 @@ export default class DcvHealthsController {
       } catch (err) {
         response.send(err)
       }
+    } else {
+      return response.status(404).send('upload file not found')
     }
-    return response.status(404).send('upload file not found')
   }
 
   public async get({ response }: HttpContextContract) {
