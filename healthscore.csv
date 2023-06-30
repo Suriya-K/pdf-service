@@ -1,0 +1,16 @@
+name,email,genetic_box,gender,Age,weight,height,bmi,activity_type,sleep_duration,stress_degree,smoking,fruit_and_veggies,alcohol_drinking,health_score
+sample1,email1,56000000000001,male,40,69.5,178,21.94,light activity,6-7,sometimes,the smoke quitter,some,occasionally,57.14
+sample2,email2,56000000000002,male,40,86.5,170,29.93,light activity,7-8,rarely-to-seldom,the smoke quitter,some,occasionally,57.14
+sample3,email3,56000000000003,female,40,58,168,20.55,light activity,5-6,rarely-to-seldom,never smoke,some,occasionally,71.43
+sample4,email4,56000000000004,female,40,68,154,28.67,light activity,5-6,rarely-to-seldom,never smoke,some,not at all,65.71
+sample5,email5,56000000000005,male,40,85,176,27.44,light activity,6-7,rarely-to-seldom,never smoke,some,the tippler,48.57
+sample6,email6,56000000000006,female,40,54,159,21.36,moderate-to-high activity,6-7,sometimes,never smoke,some,the lightweight,62.86
+sample7,email7,56000000000007,male,40,62.5,169,21.88,moderate activity,5-6,not at all,never smoke,some,occasionally,77.14
+sample8,email8,56000000000008,female,40,63.5,163,23.9,light activity,5-6,sometimes,never smoke,not that much,not at all,68.57
+sample9,email9,56000000000009,female,40,48,155,19.98,moderate-to-high activity,7-8,rarely-to-seldom,never smoke,about half,occasionally,85.71
+sample10,email10,56000000000010,male,40,73,168,25.86,moderate activity,5-6,frequently,never smoke,not that much,occasionally,62.86
+sample11,email11,56000000000011,female,40,70,160,27.34,sedentary,6-7,sometimes,never smoke,hardly,occasionally,45.71
+sample12,email12,56000000000012,male,40,80,168,28.34,sedentary,5-6,rarely-to-seldom,never smoke,not that much,the lightweight,60
+sample13,email13,56000000000013,male,40,87,173,29.07,light activity,6-7,not at all,never smoke,some,not at all,60
+sample14,email14,56000000000014,male,40,62,167,22.23,sedentary,5-6,frequently,never smoke,some,not at all,65.71
+sample15,email15,56000000000015,female,40,53,158,21.23,light activity,4-5,rarely-to-seldom,the smoke quitter,some,occasionally,65.71
