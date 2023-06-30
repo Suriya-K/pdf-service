@@ -27,3 +27,5 @@ Route.get('/', async () => {
 Route.get('/dcv-get', 'DcvHealthsController.get')
 Route.get('/dcv-get/:id', 'DcvHealthsController.getId')
 Route.post('/dcv-upload', 'DcvHealthsController.postFile')
+
+Route.get('/corporates-get', 'CorporatesController.get')
