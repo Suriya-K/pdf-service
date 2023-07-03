@@ -28,4 +28,5 @@ Route.get('/dcv-get', 'DcvHealthsController.get')
 Route.get('/dcv-get/:id', 'DcvHealthsController.getId')
 Route.post('/dcv-upload', 'DcvHealthsController.postFile')
 
+Route.post('/corporates-get', 'CorporatesController.get')
 Route.get('/corporates-get', 'CorporatesController.get')

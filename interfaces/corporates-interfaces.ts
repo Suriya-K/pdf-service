@@ -38,29 +38,22 @@ interface HealthStatistic {
 
 interface DnaStatic {
   code: string
-  disease: string
-  disease_th: string
-  checkup: string
-  risk_reduction: string
+  disease?: string
+  disease_th?: string
+  checkup?: string
+  risk_reduction?: string
   health_statistic?: HealthStatistic
 }
 
 interface Score {
-  bmi_start?: number
-  bmi_end?: number
-  bmi_lesser?: number
-  bmi_greater?: number
-  activity_type: string
-  sleep_duration_start?: number
-  sleep_duration_end?: number
-  sleep_duration_start2?: number
-  sleep_duration_end2?: number
-  sleep_duration_greater?: number
-  sleep_duration_lesser?: number
-  strees_degress: string
-  smoking: string
-  fruit_and_veggies: string
-  alcohol_drinking: string
+  bmi: Array<CountScore>
+  activity_type: Array<CountScore>
+  sleep_duration_start: Array<CountScore>
+  sleep_duration_end: Array<CountScore>
+  strees_degress: Array<CountScore>
+  smoking: Array<CountScore>
+  fruit_and_veggies: Array<CountScore>
+  alcohol_drinking: Array<CountScore>
 }
 
 interface DemographicData {
@@ -74,17 +67,12 @@ interface DemographicData {
   average_weight: number
   average_height: number
   average_bmi: number
-  bmi_percentage?: Array<BMI_Score>
+  bmi_percentage?: Array<CountScore>
 }
 
-interface BMI_Score {
-  point: string
+interface CountScore {
+  point?: string
   count: number
-}
-
-interface DNA_BaseHealthData {
-  highestRisk: DnaStatic[]
-  resultTables: DnaStatic[]
 }
 
 interface HealthScoreCalculation {
