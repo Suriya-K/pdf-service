@@ -19,6 +19,57 @@ export default class CorporatesController {
     'BR005',
   ]
   private selected_code: Array<string> = []
+  private lifestyle_score = {
+    bmi: [
+      { point: '1', count: 0 },
+      { point: '2', count: 0 },
+      { point: '3', count: 0 },
+      { point: '4', count: 0 },
+      { point: '5', count: 0 },
+    ],
+    smoking: [
+      { point: '1', count: 0 },
+      { point: '2', count: 0 },
+      { point: '3', count: 0 },
+      { point: '4', count: 0 },
+      { point: '5', count: 0 },
+    ],
+    alcohol_drinking: [
+      { point: '1', count: 0 },
+      { point: '2', count: 0 },
+      { point: '3', count: 0 },
+      { point: '4', count: 0 },
+      { point: '5', count: 0 },
+    ],
+    activity_type: [
+      { point: '1', count: 0 },
+      { point: '2', count: 0 },
+      { point: '3', count: 0 },
+      { point: '4', count: 0 },
+      { point: '5', count: 0 },
+    ],
+    fruit_and_veggies: [
+      { point: '1', count: 0 },
+      { point: '2', count: 0 },
+      { point: '3', count: 0 },
+      { point: '4', count: 0 },
+      { point: '5', count: 0 },
+    ],
+    sleep_duration: [
+      { point: '1', count: 0 },
+      { point: '2', count: 0 },
+      { point: '3', count: 0 },
+      { point: '4', count: 0 },
+      { point: '5', count: 0 },
+    ],
+    strees_degress: [
+      { point: '1', count: 0 },
+      { point: '2', count: 0 },
+      { point: '3', count: 0 },
+      { point: '4', count: 0 },
+      { point: '5', count: 0 },
+    ],
+  }
 
   public async get({ request, response }: HttpContextContract) {
     const { selected_code } = request.body()
@@ -31,6 +82,7 @@ export default class CorporatesController {
     const top_three_health_risk = await this.getTopThreeHealthRisk()
     const dna_result_table = await this.getHighestHealthRisk()
     const lifestyle_calculation = await this.getHighestLifeStyle()
+    const top_three_lifestyle_risk = await this.getTopThreeLifeStyle()
 
     await this.calculatDemographicData()
     return response.json({
@@ -41,6 +93,7 @@ export default class CorporatesController {
       top_three_health: top_three_health_risk,
       dna_result_table: dna_result_table,
       lifestyle_calculation: lifestyle_calculation,
+      top_three_lifestyle: top_three_lifestyle_risk
     })
   }
 
@@ -189,76 +242,40 @@ export default class CorporatesController {
     if (!this.healths) return
     let heath_score: any = {}
 
-    let lifestyle_score = {
-      bmi: [
-        { point: '1', count: 0 },
-        { point: '2', count: 0 },
-        { point: '3', count: 0 },
-        { point: '4', count: 0 },
-        { point: '5', count: 0 },
-      ],
-      smoking: [
-        { point: '1', count: 0 },
-        { point: '2', count: 0 },
-        { point: '3', count: 0 },
-        { point: '4', count: 0 },
-        { point: '5', count: 0 },
-      ],
-      alcohol_drinking: [
-        { point: '1', count: 0 },
-        { point: '2', count: 0 },
-        { point: '3', count: 0 },
-        { point: '4', count: 0 },
-        { point: '5', count: 0 },
-      ],
-      activity_type: [
-        { point: '1', count: 0 },
-        { point: '2', count: 0 },
-        { point: '3', count: 0 },
-        { point: '4', count: 0 },
-        { point: '5', count: 0 },
-      ],
-      fruit_and_veggies: [
-        { point: '1', count: 0 },
-        { point: '2', count: 0 },
-        { point: '3', count: 0 },
-        { point: '4', count: 0 },
-        { point: '5', count: 0 },
-      ],
-      sleep_duration: [
-        { point: '1', count: 0 },
-        { point: '2', count: 0 },
-        { point: '3', count: 0 },
-        { point: '4', count: 0 },
-        { point: '5', count: 0 },
-      ],
-      strees_degress: [
-        { point: '1', count: 0 },
-        { point: '2', count: 0 },
-        { point: '3', count: 0 },
-        { point: '4', count: 0 },
-        { point: '5', count: 0 },
-      ],
-    }
-
     this.healths.forEach((health: Healths) => {
       let [start, end] = health.sleep_duration.split(/[<>-]+/).map(Number)
-      lifestyle_score.bmi = this.setScoreBMI(health, lifestyle_score.bmi)
-      lifestyle_score.activity_type = this.setScoreActivity(health, lifestyle_score.activity_type)
-      lifestyle_score.smoking = this.setScoreSmoking(health, lifestyle_score.smoking)
-      lifestyle_score.alcohol_drinking = this.setScoreAlcohol(health, lifestyle_score.alcohol_drinking)
-      lifestyle_score.fruit_and_veggies = this.setScoreFood(health, lifestyle_score.fruit_and_veggies)
-      lifestyle_score.sleep_duration = this.setScoreSleep(start,  end,  lifestyle_score.sleep_duration)
-      lifestyle_score.strees_degress = this.setScoreStress(health, lifestyle_score.strees_degress)
+      this.lifestyle_score.bmi = this.setScoreBMI(health, this.lifestyle_score.bmi)
+      this.lifestyle_score.activity_type = this.setScoreActivity(
+        health,
+        this.lifestyle_score.activity_type
+      )
+      this.lifestyle_score.smoking = this.setScoreSmoking(health, this.lifestyle_score.smoking)
+      this.lifestyle_score.alcohol_drinking = this.setScoreAlcohol(
+        health,
+        this.lifestyle_score.alcohol_drinking
+      )
+      this.lifestyle_score.fruit_and_veggies = this.setScoreFood(
+        health,
+        this.lifestyle_score.fruit_and_veggies
+      )
+      this.lifestyle_score.sleep_duration = this.setScoreSleep(
+        start,
+        end,
+        this.lifestyle_score.sleep_duration
+      )
+      this.lifestyle_score.strees_degress = this.setScoreStress(
+        health,
+        this.lifestyle_score.strees_degress
+      )
 
       heath_score = {
-        bmi: this.calculateScorePercentage(lifestyle_score.bmi),
-        activity_type: this.calculateScorePercentage(lifestyle_score.activity_type),
-        sleep_duration:this.calculateScorePercentage(lifestyle_score.sleep_duration),
-        strees_degress: this.calculateScorePercentage(lifestyle_score.strees_degress),
-        smoking: this.calculateScorePercentage(lifestyle_score.smoking),
-        fruit_and_veggies: this.calculateScorePercentage(lifestyle_score.fruit_and_veggies),
-        alcohol_drinking: this.calculateScorePercentage(lifestyle_score.alcohol_drinking),
+        bmi: this.calculateScorePercentage(this.lifestyle_score.bmi),
+        activity_type: this.calculateScorePercentage(this.lifestyle_score.activity_type),
+        sleep_duration: this.calculateScorePercentage(this.lifestyle_score.sleep_duration),
+        strees_degress: this.calculateScorePercentage(this.lifestyle_score.strees_degress),
+        smoking: this.calculateScorePercentage(this.lifestyle_score.smoking),
+        fruit_and_veggies: this.calculateScorePercentage(this.lifestyle_score.fruit_and_veggies),
+        alcohol_drinking: this.calculateScorePercentage(this.lifestyle_score.alcohol_drinking),
       }
     })
 
@@ -336,5 +353,22 @@ export default class CorporatesController {
     return map_percent
   }
 
-  private async getTopThreeLifeStyle() {}
+  private async getTopThreeLifeStyle() {
+    const summary_lifestyle_score: { [key: string]: number } = {}
+    for (const key in this.lifestyle_score) {
+      if (this.lifestyle_score.hasOwnProperty(key)) {
+        const arr = this.lifestyle_score[key]
+        let count = 0
+        for (const item of arr) {
+          count += item.count
+        }
+        summary_lifestyle_score[key] = count
+      }
+    }
+
+    const sort_lifestyle_risk = Object.fromEntries(Object.entries(summary_lifestyle_score).sort((a, b) => a[1] - b[1]))
+    const top_three = Object.fromEntries(Object.entries(sort_lifestyle_risk).slice(0, 3))
+
+    return top_three
+  }
 }

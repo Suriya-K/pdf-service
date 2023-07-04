@@ -79,3 +79,4 @@ interface HealthScoreCalculation {
   lifestyle_calculation: AverageHealths[]
   highest_unhealthy_lifestyle: LifestyleHealths[]
 }
+
