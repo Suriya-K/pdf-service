@@ -30,3 +30,4 @@ Route.post('/dcv-upload', 'DcvHealthsController.postFile')
 
 Route.post('/corporates-get', 'CorporatesController.get')
 Route.get('/corporates-get', 'CorporatesController.get')
+Route.get('/authen','GoogleCloudPlatformsController.get')
