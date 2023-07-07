@@ -1,39 +1,40 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import * as fs from 'fs/promises'
-import path from 'path'
-import process from 'process'
-import { authenticate } from '@google-cloud/local-auth'
 import { google } from 'googleapis'
 import Env from '@ioc:Adonis/Core/Env'
 
 export default class GoogleCloudPlatformsController {
-  private SCOPES: Array<string> = [
-    'https://www.googleapis.com/auth/spreadsheets',
-    'https://www.googleapis.com/auth/drive',
-  ]
-  private TOKEN_PATH = path.join(process.cwd(), 'token.json')
-  private CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json')
+  private static credentials = {
+    web: {
+      client_id: Env.get('GOOGLE_AUTH_CLIENT_ID'),
+      project_id: Env.get('GOOGLE_AUTH_PROJECT_ID'),
+      auth_uri: Env.get('GOOGLE_AUTH_AUTH_URL'),
+      token_uri: Env.get('GOOGLE_AUTH_TOKEN_URL'),
+      auth_provider_x509_cert_url: Env.get('GOOGLE_AUTH_CERT_URL'),
+      client_secret: Env.get('GOOGLE_AUTH_CLIENT_SECRET'),
+      redirect_uris: [Env.get('GOOGLE_AUTH_REDIRECT_URL')],
+    },
+  }
 
-  public async get({ response }: HttpContextContract) {
+  public static async get({ response }: HttpContextContract) {
     try {
       const auth = await this.authen()
-      const sheet_list = await this.getSheetList(auth)
-      const drive_list = await this.getDrive(auth)
-      response.json({ sheet_list, drive_list })
+      response.json({ msg: 'in route authentication' })
     } catch (err) {
       response.json(err)
-      console.log(err)
+      console.error(err)
     }
   }
 
-  private async authen() {
+  public static async authen() {
     let client = await this.loadSavedCredentialsIfExist()
     if (client) return client
 
-    client = await authenticate({ scopes: this.SCOPES, keyfilePath: this.CREDENTIALS_PATH })
+    this.saveCredentials(client)
+    return client
+    // client = await authenticate({ scopes: this.SCOPES, keyfilePath: this.CREDENTIALS_PATH })
     // FOR GENERATE CLIENT TOKEN ONLY FOR PRODUCTION USE ENVIRONMENT
     // if (client?.credentials) await this.saveCredentials(client)
-    return client
+    // return client
   }
 
   private async getSheetList(auth) {
@@ -55,7 +56,7 @@ export default class GoogleCloudPlatformsController {
     return files
   }
 
-  private async loadSavedCredentialsIfExist() {
+  private static async loadSavedCredentialsIfExist() {
     try {
       const token = {
         type: Env.get('CLIENT_TYPE'),
@@ -71,19 +72,8 @@ export default class GoogleCloudPlatformsController {
     }
   }
 
-  private async saveCredentials(client) {
-    const credentials = {
-      web: {
-        client_id: Env.get('GOOGLE_AUTH_CLIENT_ID'),
-        project_id: Env.get('GOOGLE_AUTH_PROJECT_ID'),
-        auth_uri: Env.get('GOOGLE_AUTH_AUTH_URL'),
-        token_uri: Env.get('GOOGLE_AUTH_TOKEN_URL'),
-        auth_provider_x509_cert_url: Env.get('GOOGLE_AUTH_CERT_URL'),
-        client_secret: Env.get('GOOGLE_AUTH_CLIENT_SECRET'),
-        redirect_uris: [Env.get('GOOGLE_AUTH_REDIRECT_URL')],
-      },
-    }
-    const keys = JSON.parse(JSON.stringify(credentials))
+  private static async saveCredentials(client) {
+    const keys = JSON.parse(JSON.stringify(this.credentials))
     const key = keys.installed || keys.web
     Env.set('CLIENT_TYPE', 'authorized_user')
     Env.set('CLIENT_ID', key.client_id)

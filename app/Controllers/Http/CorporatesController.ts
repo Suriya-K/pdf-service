@@ -2,6 +2,7 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Application from '@ioc:Adonis/Core/Application'
 import csvtojson from 'csvtojson'
 import { google } from 'googleapis'
+import GoogleCloudPlatformsController from './GoogleCloudPlatformsController'
 
 export default class CorporatesController {
   private healths: Array<Healths>
@@ -72,11 +73,20 @@ export default class CorporatesController {
       { point: '5', count: 0 },
     ],
   }
+  private storage_health_id = '15zVVSPQQBukS3sFyaTCvsiS4ZnnVYuU9'
+  private storage_heath_report_statistic_id = '1Lt6HRv6NlehmciLSD7-f18kQzP0wBoSO'
 
   public async get({ request, response }: HttpContextContract) {
+    const { id } = request.params()
     const { selected_code } = request.body()
     if (!selected_code) this.selected_code = this.default_selected_code
 
+    const auth = await GoogleCloudPlatformsController.authen()
+    if (!auth) return
+
+    const files = await this.getFiles("SAMPLE",auth)
+
+    return files
     await this.readInputCsv()
     await this.getSelectedHealthReportStatistic()
     await this.readStaticDNA()
@@ -95,8 +105,19 @@ export default class CorporatesController {
       top_three_health: top_three_health_risk,
       dna_result_table: dna_result_table,
       lifestyle_calculation: lifestyle_calculation,
-      top_three_lifestyle: top_three_lifestyle_risk
+      top_three_lifestyle: top_three_lifestyle_risk,
     })
+  }
+
+  public async getAll({ response }: HttpContextContract) {
+    try {
+      const authen = await GoogleCloudPlatformsController.authen()
+      const lists = await this.getAllFileList(authen)
+      return response.json(lists)
+    } catch (err) {
+      console.error(err)
+      return response.send(err)
+    }
   }
 
   private async readInputCsv() {
@@ -110,12 +131,49 @@ export default class CorporatesController {
   }
 
   private async readHealthReportStatistic() {
+    try {
+      const authen = await GoogleCloudPlatformsController.authen()
+    } catch (err) {
+      console.error(err)
+      return err
+    }
     const path: string = Application.resourcesPath('/heath_report_statistic.csv')
     const selected_colunm: RegExp = /(category|code|pc_normal|pc_atten|pc_extra)/
     const health_report_statistic: Array<HealthStatistic> = await csvtojson({
       includeColumns: selected_colunm,
     }).fromFile(path)
     return health_report_statistic
+  }
+
+  private async getAllFileList(auth) {
+    const drive = google.drive({ version: 'v3', auth })
+    const storage_id = [this.storage_health_id, this.storage_heath_report_statistic_id]
+    const parent_drive = await drive.files.list({
+      q: `mimeType='text/csv' and (${storage_id.map((id) => `'${id}' in parents`).join(' or ')})`,
+      fields: 'files(name,id)',
+    })
+    const lists = parent_drive.data.files
+
+    const group_files: { [name: string]: any[] } = {}
+    if (lists && lists.length) {
+      lists.forEach((file) => {
+        if (file.name) {
+          const regex = /^corp_(.*?)_.*/
+          const match = file.name.match(regex)
+          const group_name = match ? match[1] : ''
+          if (group_name in group_files) group_files[group_name].push(file)
+          else group_files[group_name] = [file]
+        }
+      })
+      return group_files
+    }
+    return lists
+  }
+
+  private async getFiles(file_name, auth) {
+    const files = await this.getAllFileList(auth)
+    if (!files) return
+    console.log(files[file_name])
   }
 
   private async readStaticDNA() {
@@ -368,7 +426,9 @@ export default class CorporatesController {
       }
     }
 
-    const sort_lifestyle_risk = Object.fromEntries(Object.entries(summary_lifestyle_score).sort((a, b) => a[1] - b[1]))
+    const sort_lifestyle_risk = Object.fromEntries(
+      Object.entries(summary_lifestyle_score).sort((a, b) => a[1] - b[1])
+    )
     const top_three = Object.fromEntries(Object.entries(sort_lifestyle_risk).slice(0, 3))
 
     return top_three
