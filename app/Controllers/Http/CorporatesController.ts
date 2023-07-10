@@ -75,18 +75,19 @@ export default class CorporatesController {
   }
   private storage_health_id = '15zVVSPQQBukS3sFyaTCvsiS4ZnnVYuU9'
   private storage_heath_report_statistic_id = '1Lt6HRv6NlehmciLSD7-f18kQzP0wBoSO'
+  private authentication: any = null
+  private file_name: string = ''
 
   public async get({ request, response }: HttpContextContract) {
-    const { id } = request.params()
+    const { file_name } = request.params()
     const { selected_code } = request.body()
     if (!selected_code) this.selected_code = this.default_selected_code
 
-    const auth = await GoogleCloudPlatformsController.authen()
-    if (!auth) return
+    const authen = await GoogleCloudPlatformsController.authen()
+    if (!authen) return
+    this.authentication = authen
+    this.file_name = file_name
 
-    const files = await this.getFiles("SAMPLE",auth)
-
-    return files
     await this.readInputCsv()
     await this.getSelectedHealthReportStatistic()
     await this.readStaticDNA()
@@ -112,7 +113,9 @@ export default class CorporatesController {
   public async getAll({ response }: HttpContextContract) {
     try {
       const authen = await GoogleCloudPlatformsController.authen()
-      const lists = await this.getAllFileList(authen)
+      if (!authen) return
+      this.authentication = authen
+      const lists = await this.getListFileByNameGroup()
       return response.json(lists)
     } catch (err) {
       console.error(err)
@@ -121,32 +124,40 @@ export default class CorporatesController {
   }
 
   private async readInputCsv() {
-    const path: string = Application.resourcesPath('/healthscore.csv')
+    const lists = await this.getListFileByNameGroup({ name_group: this.file_name })
+    if (!lists) return
+    const drive = google.drive({ version: 'v3', auth: this.authentication })
+    const csvFile = await drive.files.get(
+      { fileId: lists[1].id, alt: 'media' },
+      { responseType: 'stream' }
+    )
+
     const selected_colunm: RegExp =
       /(name|gender|age|weight|height|bmi|activity_type|sleep_duration|stress_degree|smoking|fruit_and_veggies|alcohol_drinking|health_score)/
     const healths_inputs: Array<Healths> = await csvtojson({
       includeColumns: selected_colunm,
-    }).fromFile(path)
+    }).fromStream(csvFile.data)
     this.healths = healths_inputs
   }
 
   private async readHealthReportStatistic() {
-    try {
-      const authen = await GoogleCloudPlatformsController.authen()
-    } catch (err) {
-      console.error(err)
-      return err
-    }
-    const path: string = Application.resourcesPath('/heath_report_statistic.csv')
+    const lists = await this.getListFileByNameGroup({ name_group: this.file_name })
+    if (!lists) return
+    const drive = google.drive({ version: 'v3', auth: this.authentication })
+    const csvFile = await drive.files.get(
+      { fileId: lists[0].id, alt: 'media' },
+      { responseType: 'stream' }
+    )
+
     const selected_colunm: RegExp = /(category|code|pc_normal|pc_atten|pc_extra)/
     const health_report_statistic: Array<HealthStatistic> = await csvtojson({
       includeColumns: selected_colunm,
-    }).fromFile(path)
+    }).fromStream(csvFile.data)
     return health_report_statistic
   }
 
-  private async getAllFileList(auth) {
-    const drive = google.drive({ version: 'v3', auth })
+  private async getListFileByNameGroup({ name_group = '' }: { name_group?: string } = {}) {
+    const drive = google.drive({ version: 'v3', auth: this.authentication })
     const storage_id = [this.storage_health_id, this.storage_heath_report_statistic_id]
     const parent_drive = await drive.files.list({
       q: `mimeType='text/csv' and (${storage_id.map((id) => `'${id}' in parents`).join(' or ')})`,
@@ -165,15 +176,10 @@ export default class CorporatesController {
           else group_files[group_name] = [file]
         }
       })
+      if (name_group !== '') return group_files[name_group]
       return group_files
     }
     return lists
-  }
-
-  private async getFiles(file_name, auth) {
-    const files = await this.getAllFileList(auth)
-    if (!files) return
-    console.log(files[file_name])
   }
 
   private async readStaticDNA() {
@@ -187,6 +193,8 @@ export default class CorporatesController {
 
   private async getSelectedHealthReportStatistic() {
     const all_health_report_statistic = await this.readHealthReportStatistic()
+    if (!all_health_report_statistic) return
+
     this.health_report_statistic = all_health_report_statistic.filter((health) =>
       this.selected_code.includes(health.code)
     )
