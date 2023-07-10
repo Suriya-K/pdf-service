@@ -27,3 +27,8 @@ Route.get('/', async () => {
 Route.get('/dcv-get', 'DcvHealthsController.get')
 Route.get('/dcv-get/:id', 'DcvHealthsController.getId')
 Route.post('/dcv-upload', 'DcvHealthsController.postFile')
+
+Route.post('/corporates-get', 'CorporatesController.get')
+Route.get('/corporates-get/:file_name', 'CorporatesController.get')
+Route.get('/corporates-getlist', 'CorporatesController.getAll')
+Route.get('/authens','GoogleCloudPlatformsController.get')
