@@ -31,4 +31,7 @@ Route.post('/dcv-upload', 'DcvHealthsController.postFile')
 Route.post('/corporates-get', 'CorporatesController.get')
 Route.get('/corporates-get/:file_name', 'CorporatesController.get')
 Route.get('/corporates-getlist', 'CorporatesController.getAll')
-Route.get('/authens','GoogleCloudPlatformsController.get')
+
+Route.get('/google/test','GoogleCloudPlatformsController.authen')
+Route.get('/google/auth','GoogleCloudPlatformsController.redirect')
+Route.get('/google/callback','GoogleCloudPlatformsController.callback')

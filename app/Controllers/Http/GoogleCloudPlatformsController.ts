@@ -1,9 +1,18 @@
+import { authenticate } from '@google-cloud/local-auth'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { google } from 'googleapis'
 import Env from '@ioc:Adonis/Core/Env'
+import path from 'path'
+import process from 'process'
 
 export default class GoogleCloudPlatformsController {
-  private static credentials = {
+  private SCOPES = [
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/drive.file',
+  ]
+  private TOKEN_PATH = path.join(process.cwd(), 'token.json')
+  private CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json')
+  private credentials = {
     web: {
       client_id: Env.get('GOOGLE_AUTH_CLIENT_ID'),
       project_id: Env.get('GOOGLE_AUTH_PROJECT_ID'),
@@ -15,26 +24,33 @@ export default class GoogleCloudPlatformsController {
     },
   }
 
-  public static async get({ response }: HttpContextContract) {
-    try {
-      const auth = await this.authen()
-      response.json({ msg: 'in route authentication' })
-    } catch (err) {
-      response.json(err)
-      console.error(err)
-    }
+  public redirect({ ally }: HttpContextContract) {
+    return ally.use('google').redirect()
   }
 
-  public static async authen() {
+  public async callback({ ally, response }: HttpContextContract) {
+    const ally_google = ally.use('google')
+
+    if (ally_google.accessDenied())
+      return response.json({ type: 'error', message: 'Access Denied' })
+    if (ally_google.hasError())
+      return response.json({ type: 'has error', msg: ally_google.getError() })
+
+    const { token } = await ally_google.accessToken()
+    const auth = new google.auth.OAuth2()
+    auth.setCredentials({ access_token: token })
+    google.options({ auth: auth })
+    console.log(auth.getAccessToken())
+  }
+
+  public async authen() {
     let client = await this.loadSavedCredentialsIfExist()
     if (client) return client
 
-    this.saveCredentials(client)
-    return client
-    // client = await authenticate({ scopes: this.SCOPES, keyfilePath: this.CREDENTIALS_PATH })
+    client = await authenticate({ scopes: this.SCOPES, keyfilePath: this.CREDENTIALS_PATH })
     // FOR GENERATE CLIENT TOKEN ONLY FOR PRODUCTION USE ENVIRONMENT
-    // if (client?.credentials) await this.saveCredentials(client)
-    // return client
+    if (client?.credentials) await this.saveCredentials(client)
+    return client
   }
 
   private async getSheetList(auth) {
@@ -56,7 +72,7 @@ export default class GoogleCloudPlatformsController {
     return files
   }
 
-  private static async loadSavedCredentialsIfExist() {
+  private async loadSavedCredentialsIfExist() {
     try {
       const token = {
         type: Env.get('CLIENT_TYPE'),
@@ -72,7 +88,7 @@ export default class GoogleCloudPlatformsController {
     }
   }
 
-  private static async saveCredentials(client) {
+  private async saveCredentials(client) {
     const keys = JSON.parse(JSON.stringify(this.credentials))
     const key = keys.installed || keys.web
     Env.set('CLIENT_TYPE', 'authorized_user')
