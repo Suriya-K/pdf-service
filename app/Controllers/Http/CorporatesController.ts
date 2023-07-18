@@ -3,7 +3,6 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Application from '@ioc:Adonis/Core/Application'
 import csvtojson from 'csvtojson'
 import { google } from 'googleapis'
-import GoogleCloudPlatformsController from './GoogleCloudPlatformsController'
 
 export default class CorporatesController {
   private healths: Array<Healths>
@@ -85,9 +84,10 @@ export default class CorporatesController {
     if (!selected_code) this.selected_code = this.default_selected_code
 
     const authen = new google.auth.OAuth2()
-    const test_token =
-      'ya29.a0AbVbY6Pc3aAGj5KDnxDX7gs39XXX13YXe5RqLzIvEfDMr-LkoRxPh7FUswWOwBdixVTYqk6fNHTB83GLxO_G2TMi3Yz2893jdJmcYwq7ThhIuUn1Z6gOs565KReUie4OvBuLPNMbQCbxDthZb4NXmRYMKZrraCgYKAYkSARESFQFWKvPliBrHVMueXtdqjjstWT3PYA0163'
-    authen.setCredentials({ access_token: test_token })
+    const token = await request.encryptedCookie('token')
+
+    authen.setCredentials({ access_token: token })
+
     if (!authen) return
     this.authentication = authen
     this.file_name = file_name
@@ -114,12 +114,12 @@ export default class CorporatesController {
     })
   }
 
-  public async getAll({ response }: HttpContextContract) {
+  public async getAll({ request, response }: HttpContextContract) {
     try {
       const authen = new google.auth.OAuth2()
-      const test_token =
-        'ya29.a0AbVbY6PMzvewr0iDcGBRsSQ1ZgDukzL7De2CKMeMtKKbwnxIzGOz2dyG8oRpUotggQgkwA8paWtUJAnpaannP6wdPiR-fvh_lbkV3DTuc7WeEE-TFPpXEZ1pBOpt0GRbxltkNx9ae8T5CNbzhM_FnpHxUjLVaCgYKAcgSARESFQFWKvPlfGZbK1w5J8iBUrGOo8SMUQ0163'
-      authen.setCredentials({ access_token: test_token })
+      const token = await request.encryptedCookie('token')
+
+      authen.setCredentials({ access_token: token })
       if (!authen) return
       this.authentication = authen
       const lists = await this.getListFileByNameGroup()
@@ -166,7 +166,7 @@ export default class CorporatesController {
   private async getListFileByNameGroup({ name_group = '' }: { name_group?: string } = {}) {
     const drive = google.drive({ version: 'v3', auth: this.authentication })
     const storage_id = [this.storage_health_id, this.storage_heath_report_statistic_id]
-    console.log(await drive.files.list())
+    
     const parent_drive = await drive.files.list({
       q: `mimeType='text/csv' and (${storage_id.map((id) => `'${id}' in parents`).join(' or ')})`,
       fields: 'files(name,id)',

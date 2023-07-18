@@ -24,14 +24,23 @@ Route.get('/', async () => {
   return { hello: 'world' }
 })
 
-Route.get('/dcv-get', 'DcvHealthsController.get')
-Route.get('/dcv-get/:id', 'DcvHealthsController.getId')
-Route.post('/dcv-upload', 'DcvHealthsController.postFile')
+Route.group(() => {
+  Route.group(() => {
+    Route.get('/get', 'DcvHealthsController.get')
+    Route.get('/get/:id', 'DcvHealthsController.getId')
+    Route.post('/upload', 'DcvHealthsController.postFile')
+  }).prefix('/healths')
+
+  Route.group(() => {
+    Route.get('/get/:file_name', 'DcvSportsController.get')
+  }).prefix('/sports')
+}).prefix('/dcv')
+
 
 Route.post('/corporates-get', 'CorporatesController.get')
 Route.get('/corporates-get/:file_name', 'CorporatesController.get')
 Route.get('/corporates-getlist', 'CorporatesController.getAll')
 
-Route.get('/google/test','GoogleCloudPlatformsController.authen')
-Route.get('/google/auth','GoogleCloudPlatformsController.redirect')
-Route.get('/google/callback','GoogleCloudPlatformsController.callback')
+Route.get('/google/test', 'GoogleCloudPlatformsController.authen')
+Route.get('/google/auth', 'GoogleCloudPlatformsController.redirect')
+Route.get('/google/callback', 'GoogleCloudPlatformsController.callback')

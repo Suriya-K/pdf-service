@@ -10,7 +10,6 @@ export default class GoogleCloudPlatformsController {
     'https://www.googleapis.com/auth/drive',
     'https://www.googleapis.com/auth/drive.file',
   ]
-  private TOKEN_PATH = path.join(process.cwd(), 'token.json')
   private CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json')
   private credentials = {
     web: {
@@ -28,8 +27,8 @@ export default class GoogleCloudPlatformsController {
     return ally.use('google').redirect()
   }
 
-  public async callback({ ally, response }: HttpContextContract) {
-    const ally_google = ally.use('google')
+  public async callback({ ally, request, response }: HttpContextContract) {
+    const ally_google = ally.use('google').stateless()
 
     if (ally_google.accessDenied())
       return response.json({ type: 'error', message: 'Access Denied' })
@@ -37,10 +36,10 @@ export default class GoogleCloudPlatformsController {
       return response.json({ type: 'has error', msg: ally_google.getError() })
 
     const { token } = await ally_google.accessToken()
-    const auth = new google.auth.OAuth2()
-    auth.setCredentials({ access_token: token })
-    google.options({ auth: auth })
-    console.log(auth.getAccessToken())
+    const existing_token = await request.encryptedCookie('token')
+    if (existing_token !== token) response.encryptedCookie('token', token)
+
+    return response.redirect('/corporates-getlist')
   }
 
   public async authen() {
@@ -53,24 +52,24 @@ export default class GoogleCloudPlatformsController {
     return client
   }
 
-  private async getSheetList(auth) {
-    const id = '13UyhGq3ZlY4aPfV7XNQJVZHhBjrM_l0S-pYs5CN-iu0'
-    const sheets = google.sheets({ version: 'v4', auth })
-    const sheet_data = (await sheets.spreadsheets.get({ spreadsheetId: id })).data
-    const response = sheet_data.sheets?.map((s) => {
-      return s.properties?.title
-    })
-    return response
-  }
+  // private async getSheetList(auth) {
+  //   const id = '13UyhGq3ZlY4aPfV7XNQJVZHhBjrM_l0S-pYs5CN-iu0'
+  //   const sheets = google.sheets({ version: 'v4', auth })
+  //   const sheet_data = (await sheets.spreadsheets.get({ spreadsheetId: id })).data
+  //   const response = sheet_data.sheets?.map((s) => {
+  //     return s.properties?.title
+  //   })
+  //   return response
+  // }
 
-  private async getDrive(auth) {
-    const drive = google.drive({ version: 'v3', auth })
-    const storage_id: string = '19dbu-J_8iAQ0ots_iG3Pbpgk4fayzW5E'
-    const response = await drive.files.list({ q: `'${storage_id}' in parents` })
-    const files = response.data.files
-    if (!files) return 'Files not found'
-    return files
-  }
+  // private async getDrive(auth) {
+  //   const drive = google.drive({ version: 'v3', auth })
+  //   const storage_id: string = '19dbu-J_8iAQ0ots_iG3Pbpgk4fayzW5E'
+  //   const response = await drive.files.list({ q: `'${storage_id}' in parents` })
+  //   const files = response.data.files
+  //   if (!files) return 'Files not found'
+  //   return files
+  // }
 
   private async loadSavedCredentialsIfExist() {
     try {
