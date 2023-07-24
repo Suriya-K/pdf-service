@@ -1,7 +1,7 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { google } from 'googleapis'
 import csvtojson from 'csvtojson'
-import ally from 'Config/ally'
+import GoogleCloudPlatformsController from './GoogleCloudPlatformsController'
 
 export default class DcvSportsController {
   private authentication: any = null
@@ -11,8 +11,14 @@ export default class DcvSportsController {
     try {
       const { file_name } = request.params()
 
+      let token = await request.encryptedCookie('access_token')
+      if (!token) {
+        const ref_token = await request.encryptedCookie('refresh_token')
+        token = await GoogleCloudPlatformsController.handleRefeshAccessToken(ref_token)
+        response.encryptedCookie('access_token', token)
+      }
+
       const authen = new google.auth.OAuth2()
-      const token = await request.encryptedCookie('token')
       authen.setCredentials({ access_token: token })
 
       if (!authen) return

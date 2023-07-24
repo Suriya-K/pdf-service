@@ -2,8 +2,12 @@ import Drive from '@ioc:Adonis/Core/Drive'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { Readable } from 'stream'
 import csvtojson from 'csvtojson'
+import { google } from 'googleapis'
+import GoogleCloudPlatformsController from './GoogleCloudPlatformsController'
 
 export default class DcvHealthsController {
+  private storage_dcv_healths_id = '1hgRPKdrrCTqMxuEXwdgF9dMqWhb9VbAL'
+  private authentication: any = null
   public async postFile({ request, response }: HttpContextContract) {
     const csvFile = request.file('csv')
     if (csvFile) {
@@ -21,6 +25,28 @@ export default class DcvHealthsController {
   public async get({ response }: HttpContextContract) {
     const sample = await this.getAllSampleDiease()
     return response.json({ data: sample })
+  }
+
+  public async getLists({ request, response }: HttpContextContract) {
+    try {
+      let token = await request.encryptedCookie('access_token')
+      if (!token) {
+        const ref_token = await request.encryptedCookie('refresh_token')
+        token = await GoogleCloudPlatformsController.handleRefeshAccessToken(ref_token)
+        response.encryptedCookie('access_token', token)
+      }
+
+      const authen = new google.auth.OAuth2()
+      authen.setCredentials({ access_token: token })
+      if (!authen) return
+      this.authentication = authen
+
+      const test = await this.getListFileByNameGroup()
+      response.json({ data: test })
+    } catch (err) {
+      console.error(err)
+      return response.send(err)
+    }
   }
 
   public async getId({ request, response }: HttpContextContract) {
@@ -126,5 +152,29 @@ export default class DcvHealthsController {
         reportReferce.push(data)
       })
     return reportReferce
+  }
+
+  private async getListFileByNameGroup({ name_group = '' }: { name_group?: string } = {}) {
+    const drive = google.drive({ version: 'v3', auth: this.authentication })
+    const storage_id = [this.storage_dcv_healths_id]
+    const parent_drive = await drive.files.list({
+      q: `mimeType='text/csv' and (${storage_id.map((id) => `'${id}' in parents`).join(' or ')})`,
+      fields: 'files(name,id)',
+    })
+    const lists = parent_drive.data.files
+
+    // const group_files: { [name: string]: any[] } = {}
+    // if (lists && lists.length) {
+    //   lists.forEach((file) => {
+    //     if (file.name) {
+    //       const group_name = file.name.replace(/^dcv_|\?_.csv$/g, '')
+    //       if (group_name in group_files) group_files[group_name].push(file)
+    //       else group_files[group_name] = [file]
+    //     }
+    //   })
+    //   if (name_group !== '') return group_files[name_group]
+    //   return group_files
+    // }
+    return lists
   }
 }

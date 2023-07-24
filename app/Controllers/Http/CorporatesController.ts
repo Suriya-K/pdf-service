@@ -3,6 +3,8 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Application from '@ioc:Adonis/Core/Application'
 import csvtojson from 'csvtojson'
 import { google } from 'googleapis'
+import { OAuth2Client } from 'google-auth-library'
+import GoogleCloudPlatformsController from './GoogleCloudPlatformsController'
 
 export default class CorporatesController {
   private healths: Array<Healths>
@@ -73,9 +75,9 @@ export default class CorporatesController {
       { point: '5', count: 0 },
     ],
   }
-  private storage_health_id = '15zVVSPQQBukS3sFyaTCvsiS4ZnnVYuU9'
-  private storage_heath_report_statistic_id = '1Lt6HRv6NlehmciLSD7-f18kQzP0wBoSO'
-  private authentication: any = null
+  private storage_health_id: string = '15zVVSPQQBukS3sFyaTCvsiS4ZnnVYuU9'
+  private storage_heath_report_statistic_id: string = '1Lt6HRv6NlehmciLSD7-f18kQzP0wBoSO'
+  private authentication: OAuth2Client
   private file_name: string = ''
 
   public async get({ request, response }: HttpContextContract) {
@@ -83,13 +85,18 @@ export default class CorporatesController {
     const { selected_code } = request.body()
     if (!selected_code) this.selected_code = this.default_selected_code
 
+    let token = await request.encryptedCookie('access_token')
+    if (!token) {
+      const ref_token = await request.encryptedCookie('refresh_token')
+      token = await GoogleCloudPlatformsController.handleRefeshAccessToken(ref_token)
+      response.encryptedCookie('access_token', token)
+    }
+
     const authen = new google.auth.OAuth2()
-    const token = await request.encryptedCookie('token')
-
     authen.setCredentials({ access_token: token })
-
     if (!authen) return
     this.authentication = authen
+
     this.file_name = file_name
 
     await this.readInputCsv()
@@ -116,12 +123,18 @@ export default class CorporatesController {
 
   public async getAll({ request, response }: HttpContextContract) {
     try {
-      const authen = new google.auth.OAuth2()
-      const token = await request.encryptedCookie('token')
+      let token = await request.encryptedCookie('access_token')
+      if (!token) {
+        const ref_token = await request.encryptedCookie('refresh_token')
+        token = await GoogleCloudPlatformsController.handleRefeshAccessToken(ref_token)
+        response.encryptedCookie('access_token', token)
+      }
 
+      const authen = new google.auth.OAuth2()
       authen.setCredentials({ access_token: token })
       if (!authen) return
       this.authentication = authen
+
       const lists = await this.getListFileByNameGroup()
       return response.json(lists)
     } catch (err) {
@@ -166,7 +179,7 @@ export default class CorporatesController {
   private async getListFileByNameGroup({ name_group = '' }: { name_group?: string } = {}) {
     const drive = google.drive({ version: 'v3', auth: this.authentication })
     const storage_id = [this.storage_health_id, this.storage_heath_report_statistic_id]
-    
+
     const parent_drive = await drive.files.list({
       q: `mimeType='text/csv' and (${storage_id.map((id) => `'${id}' in parents`).join(' or ')})`,
       fields: 'files(name,id)',

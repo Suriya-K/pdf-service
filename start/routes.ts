@@ -20,13 +20,20 @@
 
 import Route from '@ioc:Adonis/Core/Route'
 
-Route.get('/', async () => {
-  return { hello: 'world' }
+Route.get('/', async ({ response }) => {
+  const routes: any = []
+  const route_path = Route.toJSON()
+  route_path['root'].forEach((route) => {
+    routes.push(route.pattern)
+  })
+
+  return response.json({ routes })
 })
 
 Route.group(() => {
   Route.group(() => {
     Route.get('/get', 'DcvHealthsController.get')
+    Route.get('/get/lists', 'DcvHealthsController.getLists')
     Route.get('/get/:id', 'DcvHealthsController.getId')
     Route.post('/upload', 'DcvHealthsController.postFile')
   }).prefix('/healths')
@@ -35,7 +42,6 @@ Route.group(() => {
     Route.get('/get/:file_name', 'DcvSportsController.get')
   }).prefix('/sports')
 }).prefix('/dcv')
-
 
 Route.post('/corporates-get', 'CorporatesController.get')
 Route.get('/corporates-get/:file_name', 'CorporatesController.get')
