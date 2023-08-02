@@ -16,6 +16,19 @@ export default class GoogleCloudPlatformsController {
       console.error(err)
     }
   }
+
+  public async getRefresh({ request, response }: HttpContextContract) {
+    try {
+      const existing_refresh = await request.encryptedCookie('refresh_token')
+      if (existing_refresh) {
+        return response.json({ token: existing_refresh })
+      }
+    } catch (err) {
+      response.json(err)
+      console.error(err)
+    }
+  }
+
   public async callback({ ally, request, response }: HttpContextContract) {
     const existing_refresh = await request.encryptedCookie('refresh_token')
     const existing_access = await request.encryptedCookie('access_token')
