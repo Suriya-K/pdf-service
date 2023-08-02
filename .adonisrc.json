@@ -19,7 +19,8 @@
   "providers": [
     "./providers/AppProvider",
     "@adonisjs/core",
-    "@adonisjs/drive-s3"
+    "@adonisjs/drive-s3",
+    "@adonisjs/ally"
   ],
   "aceProviders": [
     "@adonisjs/repl"

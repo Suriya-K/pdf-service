@@ -3,16 +3,8 @@ import { google } from 'googleapis'
 import Env from '@ioc:Adonis/Core/Env'
 
 export default class GoogleCloudPlatformsController {
-  private static credentials = {
-    web: {
-      client_id: Env.get('GOOGLE_AUTH_CLIENT_ID'),
-      project_id: Env.get('GOOGLE_AUTH_PROJECT_ID'),
-      auth_uri: Env.get('GOOGLE_AUTH_AUTH_URL'),
-      token_uri: Env.get('GOOGLE_AUTH_TOKEN_URL'),
-      auth_provider_x509_cert_url: Env.get('GOOGLE_AUTH_CERT_URL'),
-      client_secret: Env.get('GOOGLE_AUTH_CLIENT_SECRET'),
-      redirect_uris: [Env.get('GOOGLE_AUTH_REDIRECT_URL')],
-    },
+  public redirect({ ally }: HttpContextContract) {
+    return ally.use('google').redirect()
   }
 
   public static async get({ response }: HttpContextContract) {
@@ -24,67 +16,44 @@ export default class GoogleCloudPlatformsController {
       console.error(err)
     }
   }
+  public async callback({ ally, request, response }: HttpContextContract) {
+    const existing_refresh = await request.encryptedCookie('refresh_token')
+    const existing_access = await request.encryptedCookie('access_token')
 
-  public static async authen() {
-    let client = await this.loadSavedCredentialsIfExist()
-    if (client) return client
+    if (!existing_refresh) {
+      const ally_google = ally.use('google').stateless()
 
-    this.saveCredentials(client)
-    return client
-    // client = await authenticate({ scopes: this.SCOPES, keyfilePath: this.CREDENTIALS_PATH })
-    // FOR GENERATE CLIENT TOKEN ONLY FOR PRODUCTION USE ENVIRONMENT
-    // if (client?.credentials) await this.saveCredentials(client)
-    // return client
+      if (ally_google.accessDenied())
+        return response.json({ type: 'error', message: 'Access Denied' })
+      if (ally_google.hasError())
+        return response.json({ type: 'has error', msg: ally_google.getError() })
+
+      const access_token = await ally_google.accessToken()
+
+      if (!existing_access || existing_access == undefined) {
+        response.encryptedCookie('access_token', access_token.token, { maxAge: '1h' })
+      }
+      response.encryptedCookie('refresh_token', access_token.refreshToken)
+    }
+    return response.redirect('/')
   }
 
-  // private async getSheetList(auth) {
-  //   const id = '13UyhGq3ZlY4aPfV7XNQJVZHhBjrM_l0S-pYs5CN-iu0'
-  //   const sheets = google.sheets({ version: 'v4', auth })
-  //   const sheet_data = (await sheets.spreadsheets.get({ spreadsheetId: id })).data
-  //   const response = sheet_data.sheets?.map((s) => {
-  //     return s.properties?.title
-  //   })
-  //   return response
-  // }
-
-  // private async getDrive(auth) {
-  //   const drive = google.drive({ version: 'v3', auth })
-  //   const storage_id: string = '19dbu-J_8iAQ0ots_iG3Pbpgk4fayzW5E'
-  //   const response = await drive.files.list({ q: `'${storage_id}' in parents` })
-  //   const files = response.data.files
-  //   if (!files) return 'Files not found'
-  //   return files
-  // }
-
-  private static async loadSavedCredentialsIfExist() {
+  public static async handleRefeshAccessToken(ref_token) {
     try {
-      const token = {
-        type: Env.get('CLIENT_TYPE'),
-        client_id: Env.get('CLIENT_ID'),
-        client_secret: Env.get('CLIENT_SECRET'),
-        refresh_token: Env.get('CLIENT_REFRESH_TOKEN'),
-      }
-      const credentials = JSON.parse(JSON.stringify(token))
-      return google.auth.fromJSON(credentials)
+      const oauth2Client = new google.auth.OAuth2(
+        Env.get('GOOGLE_CLIENT_ID'),
+        Env.get('GOOGLE_CLIENT_SECRET')
+      )
+      oauth2Client.setCredentials({ refresh_token: ref_token })
+      const new_access_token = await oauth2Client.refreshAccessToken()
+
+      return new_access_token.credentials.access_token
     } catch (err) {
-      console.error(err)
+      console.error('Error refreshing access token:', err.message)
+
+      // Log the error response for further analysis
+      console.log('Error Response:', err)
       return err
     }
-  }
-
-  private static async saveCredentials(client) {
-    const keys = JSON.parse(JSON.stringify(this.credentials))
-    const key = keys.installed || keys.web
-    Env.set('CLIENT_TYPE', 'authorized_user')
-    Env.set('CLIENT_ID', key.client_id)
-    Env.set('CLIENT_SECRET', key.client_secret)
-    Env.set('CLIENT_REFRESH_TOKEN', client.credentials.refresh_token)
-    // const payload = JSON.stringify({
-    //   type: 'authorized_user',
-    //   client_id: key.client_id,
-    //   client_secret: key.client_secret,
-    //   refresh_token: client.credentials.refresh_token,
-    // })
-    // await fs.writeFile(this.TOKEN_PATH, payload)
   }
 }
