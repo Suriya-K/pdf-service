@@ -102,10 +102,10 @@ export const http: ServerConfig = {
   |--------------------------------------------------------------------------
   */
   cookie: {
-    domain: 'localhost',
+    domain: '',
     path: '/',
     maxAge: '9600h',
-    httpOnly: true,
+    httpOnly: false,
     secure: true,
     sameSite: true,
   },
