@@ -20,15 +20,33 @@
 
 import Route from '@ioc:Adonis/Core/Route'
 
-Route.get('/', async () => {
-  return { hello: 'world' }
+Route.get('/', async ({ response }) => {
+  const routes: any = []
+  const route_path = Route.toJSON()
+  route_path['root'].forEach((route) => {
+    routes.push(route.pattern)
+  })
+
+  return response.json({ routes })
 })
 
-Route.get('/dcv-get', 'DcvHealthsController.get')
-Route.get('/dcv-get/:id', 'DcvHealthsController.getId')
-Route.post('/dcv-upload', 'DcvHealthsController.postFile')
+Route.group(() => {
+  Route.group(() => {
+    Route.get('/get/files/lists', 'DcvHealthsController.getLists')
+    Route.get('/get/files/:id', 'DcvHealthsController.getId')
+    Route.get('/get/:sample_number/:id', 'DcvHealthsController.getBySampleNumber')
+    Route.post('/upload', 'DcvHealthsController.postFile')
+  }).prefix('/healths')
+
+  Route.group(() => {
+    Route.get('/get/:file_name', 'DcvSportsController.get')
+  }).prefix('/sports')
+}).prefix('/dcv')
 
 Route.post('/corporates-get', 'CorporatesController.get')
 Route.get('/corporates-get/:file_name', 'CorporatesController.get')
 Route.get('/corporates-getlist', 'CorporatesController.getAll')
-Route.get('/authens','GoogleCloudPlatformsController.get')
+
+Route.get('/google/test', 'GoogleCloudPlatformsController.authen')
+Route.get('/google/auth', 'GoogleCloudPlatformsController.redirect')
+Route.get('/google/callback', 'GoogleCloudPlatformsController.callback')
