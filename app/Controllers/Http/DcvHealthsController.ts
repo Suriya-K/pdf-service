@@ -21,11 +21,6 @@ export default class DcvHealthsController {
     }
   }
 
-  public async get({ response }: HttpContextContract) {
-    const sample = await this.getAllSampleDiease()
-    return response.json({ data: sample })
-  }
-
   public async getLists({ request, response }: HttpContextContract) {
     try {
       let token = await request.encryptedCookie('access_token')
@@ -111,7 +106,7 @@ export default class DcvHealthsController {
 
   private calulateScore(input_data: Input[], reference: DcvHealth[]) {
     let healthScore: any = {}
-    const TOTAL_SCORE: number = 100 * 3 * 3
+    const TOTAL_SCORE: number = 100
     const MAX_SCORE: number = 10
 
     input_data.forEach((input: Input) => {
@@ -123,11 +118,11 @@ export default class DcvHealthsController {
         if (input.code === ref.code && input.sex !== ref.sex_exclude) {
           const sample_score = input['sample.perc']
           // marked
-          const ref_im = ref.important
-          const ref_ur = ref.urgent
+          // const ref_im = ref.important
+          // const ref_ur = ref.urgent
 
           // calulated score 0 ... 10
-          const score = ((sample_score * ref_im * ref_ur) / TOTAL_SCORE) * MAX_SCORE
+          const score = (sample_score / TOTAL_SCORE) * MAX_SCORE
           ref.disease_score = score
           return ref
         }
@@ -142,7 +137,7 @@ export default class DcvHealthsController {
   private calulateSampleIdScore(input_data: Input[], reference: DcvHealth[], stringId: string) {
     let healthScore: any = {}
     const capitalizedID = stringId.toUpperCase()
-    const TOTAL_SCORE: number = 100 * 3 * 3
+    const TOTAL_SCORE: number = 100
     const MAX_SCORE: number = 10
 
     input_data.forEach((input: Input) => {
@@ -152,11 +147,11 @@ export default class DcvHealthsController {
         const filterReference = reference.filter((ref) => {
           if (input.code === ref.code && input.sex !== ref.sex_exclude) {
             const sample_score = input['sample.perc']
-            const ref_im = ref.important
-            const ref_ur = ref.urgent
+            // const ref_im = ref.important
+            // const ref_ur = ref.urgent
 
             // calulated score 0 ... 10
-            const score = ((sample_score * ref_im * ref_ur) / TOTAL_SCORE) * MAX_SCORE
+            const score = (sample_score / TOTAL_SCORE) * MAX_SCORE
             ref.disease_score = score
             return ref
           }
@@ -170,9 +165,6 @@ export default class DcvHealthsController {
 
   private async readInputCsv(id: string): Promise<Input[]> {
     let reportInput: Input[] = []
-    // const path: string = Application.resourcesPath('/report-csv/sample_dcv_h_input.csv')
-    // const getCsvInputFile = await Drive.use('s3').getStream('sample_dcv_h_input.csv')
-    // const readable = Readable.from(getCsvInputFile)
     const csv_file = await this.getFileById(id)
     const SelectedColumn: RegExp = /(sex|sample_number|sample.perc|code)/
     await csvtojson({ includeColumns: SelectedColumn, flatKeys: true })
@@ -199,7 +191,7 @@ export default class DcvHealthsController {
     return reportReferce
   }
 
-  private async getListFileByNameGroup({ name_group = '' }: { name_group?: string } = {}) {
+  private async getListFileByNameGroup() {
     const drive = google.drive({ version: 'v3', auth: this.authentication })
     const storage_id = [this.storage_dcv_healths_id]
     const parent_drive = await drive.files.list({
@@ -207,19 +199,6 @@ export default class DcvHealthsController {
       fields: 'files(name,id)',
     })
     const lists = parent_drive.data.files
-
-    // const group_files: { [name: string]: any[] } = {}
-    // if (lists && lists.length) {
-    //   lists.forEach((file) => {
-    //     if (file.name) {
-    //       const group_name = file.name.replace(/^dcv_|\?_.csv$/g, '')
-    //       if (group_name in group_files) group_files[group_name].push(file)
-    //       else group_files[group_name] = [file]
-    //     }
-    //   })
-    //   if (name_group !== '') return group_files[name_group]
-    //   return group_files
-    // }
     return lists
   }
 

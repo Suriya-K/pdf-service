@@ -32,7 +32,6 @@ Route.get('/', async ({ response }) => {
 
 Route.group(() => {
   Route.group(() => {
-    Route.get('/get', 'DcvHealthsController.get')
     Route.get('/get/files/lists', 'DcvHealthsController.getLists')
     Route.get('/get/files/:id', 'DcvHealthsController.getId')
     Route.get('/get/:sample_number/:id', 'DcvHealthsController.getBySampleNumber')
