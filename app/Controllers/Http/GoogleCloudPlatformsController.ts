@@ -17,7 +17,7 @@ export default class GoogleCloudPlatformsController {
 
   public static async get({ response }: HttpContextContract) {
     try {
-      const auth = await this.authen()
+      // const auth = await this.authen()
       response.json({ msg: 'in route authentication' })
     } catch (err) {
       response.json(err)
@@ -37,24 +37,24 @@ export default class GoogleCloudPlatformsController {
     // return client
   }
 
-  private async getSheetList(auth) {
-    const id = '13UyhGq3ZlY4aPfV7XNQJVZHhBjrM_l0S-pYs5CN-iu0'
-    const sheets = google.sheets({ version: 'v4', auth })
-    const sheet_data = (await sheets.spreadsheets.get({ spreadsheetId: id })).data
-    const response = sheet_data.sheets?.map((s) => {
-      return s.properties?.title
-    })
-    return response
-  }
+  // private async getSheetList(auth) {
+  //   const id = '13UyhGq3ZlY4aPfV7XNQJVZHhBjrM_l0S-pYs5CN-iu0'
+  //   const sheets = google.sheets({ version: 'v4', auth })
+  //   const sheet_data = (await sheets.spreadsheets.get({ spreadsheetId: id })).data
+  //   const response = sheet_data.sheets?.map((s) => {
+  //     return s.properties?.title
+  //   })
+  //   return response
+  // }
 
-  private async getDrive(auth) {
-    const drive = google.drive({ version: 'v3', auth })
-    const storage_id: string = '19dbu-J_8iAQ0ots_iG3Pbpgk4fayzW5E'
-    const response = await drive.files.list({ q: `'${storage_id}' in parents` })
-    const files = response.data.files
-    if (!files) return 'Files not found'
-    return files
-  }
+  // private async getDrive(auth) {
+  //   const drive = google.drive({ version: 'v3', auth })
+  //   const storage_id: string = '19dbu-J_8iAQ0ots_iG3Pbpgk4fayzW5E'
+  //   const response = await drive.files.list({ q: `'${storage_id}' in parents` })
+  //   const files = response.data.files
+  //   if (!files) return 'Files not found'
+  //   return files
+  // }
 
   private static async loadSavedCredentialsIfExist() {
     try {
