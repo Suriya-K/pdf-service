@@ -1,14 +1,8 @@
-import { authenticate } from '@google-cloud/local-auth'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { google } from 'googleapis'
 import Env from '@ioc:Adonis/Core/Env'
 
 export default class GoogleCloudPlatformsController {
-  private SCOPES = [
-    'https://www.googleapis.com/auth/drive',
-    'https://www.googleapis.com/auth/drive.file',
-  ]
-
   public redirect({ ally }: HttpContextContract) {
     return ally.use('google').redirect()
   }
