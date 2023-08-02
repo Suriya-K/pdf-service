@@ -27,7 +27,7 @@ const allyConfig: AllyConfig = {
     driver: 'google',
     clientId: Env.get('GOOGLE_CLIENT_ID'),
     clientSecret: Env.get('GOOGLE_CLIENT_SECRET'),
-    callbackUrl: 'http://localhost:3333/google/callback',
+    callbackUrl: Env.get('GOOGLE_CALLBACK_URL'),
     scopes: ['drive.file', 'drive'],
     accessType: 'offline',
     prompt: 'select_account',

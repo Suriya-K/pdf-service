@@ -28,4 +28,5 @@ export default Env.rules({
   S3_ENDPOINT: Env.schema.string.optional(),
   GOOGLE_CLIENT_ID: Env.schema.string(),
   GOOGLE_CLIENT_SECRET: Env.schema.string(),
+  GOOGLE_CALLBACK_URL: Env.schema.string(),
 })
