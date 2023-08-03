@@ -110,7 +110,7 @@ export default class DcvHealthsController {
     const MAX_SCORE: number = 10
 
     input_data.forEach((input: Input) => {
-      let sample_number = input.sample_number
+      let sample_number = input.sample_number.replace(/\s/g,'')
 
       if (!healthScore[sample_number]) healthScore[sample_number] = []
 
@@ -136,7 +136,7 @@ export default class DcvHealthsController {
 
   private calulateSampleIdScore(input_data: Input[], reference: DcvHealth[], stringId: string) {
     let healthScore: any = {}
-    const capitalizedID = stringId.toUpperCase()
+    const capitalizedID = stringId.toUpperCase().replace(/\s/g,'')
     const TOTAL_SCORE: number = 100
     const MAX_SCORE: number = 10
 
