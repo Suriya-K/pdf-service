@@ -107,7 +107,7 @@ export const http: ServerConfig = {
     maxAge: '9600h',
     httpOnly: false,
     secure: true,
-    sameSite: true,
+    sameSite: false,
   },
 
   /*
