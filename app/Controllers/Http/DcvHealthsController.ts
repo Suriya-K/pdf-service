@@ -139,11 +139,12 @@ export default class DcvHealthsController {
     const capitalizedID = stringId.toUpperCase().replace(/\s/g,'')
     const TOTAL_SCORE: number = 100
     const MAX_SCORE: number = 10
-
+    
     input_data.forEach((input: Input) => {
+      let sample_number = input.sample_number.replace(/\s/g,'')
       if (!healthScore[capitalizedID]) healthScore[capitalizedID] = []
 
-      if (input.sample_number === capitalizedID) {
+      if (sample_number === capitalizedID) {
         const filterReference = reference.filter((ref) => {
           if (input.code === ref.code && input.sex !== ref.sex_exclude) {
             const sample_score = input['sample.perc']
