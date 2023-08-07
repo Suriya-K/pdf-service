@@ -26,7 +26,7 @@ export default class GoogleCloudPlatformsController {
       return response.json({ type: 'has error', msg: ally_google.getError() })
 
     const access_token = await ally_google.accessToken()
-    console.log('token', access_token.refreshToken)
+    console.log('token', access_token)
     return response.redirect('/')
   }
 
