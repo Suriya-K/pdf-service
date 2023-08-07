@@ -24,14 +24,10 @@ export default class DcvHealthsController {
 
   public async getLists({ request, response }: HttpContextContract) {
     try {
-      let token = await request.encryptedCookie('access_token')
-      if (!token) {
-        let ref_token = await request.encryptedCookie('refresh_token')
-        if(!ref_token) ref_token = Env.get('GOOGLE_REFRESH_TOKEN')
-        token = await GoogleCloudPlatformsController.handleRefeshAccessToken(ref_token)
-        response.encryptedCookie('access_token', token, { maxAge: '1h' })
-      }
-
+      let ref_token = Env.get('GOOGLE_REFRESH_TOKEN')
+      let token = ''
+      token = await GoogleCloudPlatformsController.handleRefeshAccessToken(ref_token)
+      response.encryptedCookie('access_token', token, { maxAge: '1h' })
       const authen = new google.auth.OAuth2()
       authen.setCredentials({ access_token: token })
       if (!authen) return
@@ -50,7 +46,7 @@ export default class DcvHealthsController {
       let token = await request.encryptedCookie('access_token')
       if (!token) {
         let ref_token = await request.encryptedCookie('refresh_token')
-        if(!ref_token) ref_token = Env.get('GOOGLE_REFRESH_TOKEN')
+        if (!ref_token) ref_token = Env.get('GOOGLE_REFRESH_TOKEN')
         token = await GoogleCloudPlatformsController.handleRefeshAccessToken(ref_token)
         response.encryptedCookie('access_token', token, { maxAge: '1h' })
       }
@@ -113,7 +109,7 @@ export default class DcvHealthsController {
     const MAX_SCORE: number = 10
 
     input_data.forEach((input: Input) => {
-      let sample_number = input.sample_number.replace(/\s/g,'')
+      let sample_number = input.sample_number.replace(/\s/g, '')
 
       if (!healthScore[sample_number]) healthScore[sample_number] = []
 
@@ -139,12 +135,12 @@ export default class DcvHealthsController {
 
   private calulateSampleIdScore(input_data: Input[], reference: DcvHealth[], stringId: string) {
     let healthScore: any = {}
-    const capitalizedID = stringId.toUpperCase().replace(/\s/g,'')
+    const capitalizedID = stringId.toUpperCase().replace(/\s/g, '')
     const TOTAL_SCORE: number = 100
     const MAX_SCORE: number = 10
 
     input_data.forEach((input: Input) => {
-      let sample_number = input.sample_number.replace(/\s/g,'')
+      let sample_number = input.sample_number.replace(/\s/g, '')
       if (!healthScore[capitalizedID]) healthScore[capitalizedID] = []
 
       if (sample_number === capitalizedID) {
