@@ -24,15 +24,11 @@ export default class DcvHealthsController {
 
   public async getLists({ response }: HttpContextContract) {
     try {
-      let ref_token = Env.get('GOOGLE_REFRESH_TOKEN')
-      let token = ''
-      token = await GoogleCloudPlatformsController.handleRefeshAccessToken(ref_token)
-      response.encryptedCookie('access_token', token, { maxAge: '1h' })
+      const token = await GoogleCloudPlatformsController.handleRefeshAccessToken()
       const authen = new google.auth.OAuth2()
       authen.setCredentials({ access_token: token })
       if (!authen) return
       this.authentication = authen
-
       const file_list = await this.getListFileByNameGroup()
       response.json(file_list)
     } catch (err) {
@@ -43,22 +39,13 @@ export default class DcvHealthsController {
 
   public async getId({ request, response }: HttpContextContract) {
     try {
-      let token = await request.encryptedCookie('access_token')
-      if (!token) {
-        let ref_token = await request.encryptedCookie('refresh_token')
-        if (!ref_token) ref_token = Env.get('GOOGLE_REFRESH_TOKEN')
-        token = await GoogleCloudPlatformsController.handleRefeshAccessToken(ref_token)
-        response.encryptedCookie('access_token', token, { maxAge: '1h' })
-      }
-
+      const token = await GoogleCloudPlatformsController.handleRefeshAccessToken()
       const authen = new google.auth.OAuth2()
       authen.setCredentials({ access_token: token })
       if (!authen) return
       this.authentication = authen
-
       const req = await request.param('id')
       const file_data = await this.getAllSampleDiease(req)
-
       response.json(file_data)
     } catch (err) {
       console.error(err)
@@ -68,12 +55,7 @@ export default class DcvHealthsController {
 
   public async getBySampleNumber({ request, response }: HttpContextContract) {
     try {
-      let token = await request.encryptedCookie('access_token')
-      if (!token) {
-        const ref_token = await request.encryptedCookie('refresh_token')
-        token = await GoogleCloudPlatformsController.handleRefeshAccessToken(ref_token)
-        response.encryptedCookie('access_token', token, { maxAge: '1h' })
-      }
+      const token = await GoogleCloudPlatformsController.handleRefeshAccessToken()
 
       const authen = new google.auth.OAuth2()
       authen.setCredentials({ access_token: token })
@@ -198,6 +180,8 @@ export default class DcvHealthsController {
       q: `mimeType='text/csv' and (${storage_id.map((id) => `'${id}' in parents`).join(' or ')})`,
       fields: 'files(name,id)',
     })
+    const test_drive = await drive.files.list()
+    console.log(test_drive.data.files)
     const lists = parent_drive.data.files
     return lists
   }

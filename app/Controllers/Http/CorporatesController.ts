@@ -84,12 +84,7 @@ export default class CorporatesController {
     const { selected_code } = request.body()
     if (!selected_code) this.selected_code = this.default_selected_code
 
-    let token = await request.encryptedCookie('access_token')
-    if (!token) {
-      const ref_token = await request.encryptedCookie('refresh_token')
-      token = await GoogleCloudPlatformsController.handleRefeshAccessToken(ref_token)
-      response.encryptedCookie('access_token', token)
-    }
+    const token = await GoogleCloudPlatformsController.handleRefeshAccessToken()
 
     const authen = new google.auth.OAuth2()
     authen.setCredentials({ access_token: token })
@@ -122,12 +117,7 @@ export default class CorporatesController {
 
   public async getAll({ request, response }: HttpContextContract) {
     try {
-      let token = await request.encryptedCookie('access_token')
-      if (!token) {
-        const ref_token = await request.encryptedCookie('refresh_token')
-        token = await GoogleCloudPlatformsController.handleRefeshAccessToken(ref_token)
-        response.encryptedCookie('access_token', token)
-      }
+      const token = await GoogleCloudPlatformsController.handleRefeshAccessToken()
 
       const authen = new google.auth.OAuth2()
       authen.setCredentials({ access_token: token })

@@ -17,31 +17,22 @@ export default class GoogleCloudPlatformsController {
     }
   }
 
-  public async callback({ ally, request, response }: HttpContextContract) {
-    const existing_refresh = await request.encryptedCookie('refresh_token')
-    const existing_access = await request.encryptedCookie('access_token')
+  public async callback({ ally, response }: HttpContextContract) {
+    const ally_google = ally.use('google').stateless()
 
-    if (!existing_refresh) {
-      const ally_google = ally.use('google').stateless()
+    if (ally_google.accessDenied())
+      return response.json({ type: 'error', message: 'Access Denied' })
+    if (ally_google.hasError())
+      return response.json({ type: 'has error', msg: ally_google.getError() })
 
-      if (ally_google.accessDenied())
-        return response.json({ type: 'error', message: 'Access Denied' })
-      if (ally_google.hasError())
-        return response.json({ type: 'has error', msg: ally_google.getError() })
-
-      const access_token = await ally_google.accessToken()
-
-      if (!existing_access || existing_access == undefined) {
-        response.encryptedCookie('access_token', access_token.token, { maxAge: '1h' })
-      }
-      console.log(access_token.refreshToken)
-      response.encryptedCookie('refresh_token', access_token.refreshToken)
-    }
+    const access_token = await ally_google.accessToken()
+    console.log('token', access_token.refreshToken)
     return response.redirect('/')
   }
 
-  public static async handleRefeshAccessToken(ref_token) {
+  public static async handleRefeshAccessToken() {
     try {
+      const ref_token = Env.get('GOOGLE_REFRESH_TOKEN')
       const oauth2Client = new google.auth.OAuth2(
         Env.get('GOOGLE_CLIENT_ID'),
         Env.get('GOOGLE_CLIENT_SECRET')

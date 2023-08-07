@@ -11,12 +11,7 @@ export default class DcvSportsController {
     try {
       const { file_name } = request.params()
 
-      let token = await request.encryptedCookie('access_token')
-      if (!token) {
-        const ref_token = await request.encryptedCookie('refresh_token')
-        token = await GoogleCloudPlatformsController.handleRefeshAccessToken(ref_token)
-        response.encryptedCookie('access_token', token)
-      }
+      const token = await GoogleCloudPlatformsController.handleRefeshAccessToken()
 
       const authen = new google.auth.OAuth2()
       authen.setCredentials({ access_token: token })
