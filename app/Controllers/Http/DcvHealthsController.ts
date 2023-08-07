@@ -2,6 +2,7 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import csvtojson from 'csvtojson'
 import { google } from 'googleapis'
 import GoogleCloudPlatformsController from './GoogleCloudPlatformsController'
+import Env from '@ioc:Adonis/Core/Env'
 
 export default class DcvHealthsController {
   private storage_dcv_healths_id = '1hgRPKdrrCTqMxuEXwdgF9dMqWhb9VbAL'
@@ -25,7 +26,8 @@ export default class DcvHealthsController {
     try {
       let token = await request.encryptedCookie('access_token')
       if (!token) {
-        const ref_token = await request.encryptedCookie('refresh_token')
+        let ref_token = await request.encryptedCookie('refresh_token')
+        if(!ref_token) ref_token = Env.get('GOOGLE_REFRESH_TOKEN')
         token = await GoogleCloudPlatformsController.handleRefeshAccessToken(ref_token)
         response.encryptedCookie('access_token', token, { maxAge: '1h' })
       }
@@ -47,7 +49,8 @@ export default class DcvHealthsController {
     try {
       let token = await request.encryptedCookie('access_token')
       if (!token) {
-        const ref_token = await request.encryptedCookie('refresh_token')
+        let ref_token = await request.encryptedCookie('refresh_token')
+        if(!ref_token) ref_token = Env.get('GOOGLE_REFRESH_TOKEN')
         token = await GoogleCloudPlatformsController.handleRefeshAccessToken(ref_token)
         response.encryptedCookie('access_token', token, { maxAge: '1h' })
       }
@@ -95,13 +98,13 @@ export default class DcvHealthsController {
   private async getAllSampleDiease(id) {
     const input_data: Input[] = await this.readInputCsv(id)
     const reference: DcvHealth[] = await this.readReference()
-    return this.calulateScore(input_data, reference)
+    return await this.calulateScore(input_data, reference)
   }
 
   private async getSampleDieaseBySampleId(stringId: string, id: string) {
     const input_data: Input[] = await this.readInputCsv(id)
     const reference: DcvHealth[] = await this.readReference()
-    return this.calulateSampleIdScore(input_data, reference, stringId)
+    return await this.calulateSampleIdScore(input_data, reference, stringId)
   }
 
   private calulateScore(input_data: Input[], reference: DcvHealth[]) {
@@ -139,7 +142,7 @@ export default class DcvHealthsController {
     const capitalizedID = stringId.toUpperCase().replace(/\s/g,'')
     const TOTAL_SCORE: number = 100
     const MAX_SCORE: number = 10
-    
+
     input_data.forEach((input: Input) => {
       let sample_number = input.sample_number.replace(/\s/g,'')
       if (!healthScore[capitalizedID]) healthScore[capitalizedID] = []

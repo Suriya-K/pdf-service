@@ -34,6 +34,7 @@ export default class GoogleCloudPlatformsController {
       if (!existing_access || existing_access == undefined) {
         response.encryptedCookie('access_token', access_token.token, { maxAge: '1h' })
       }
+      console.log(access_token.refreshToken)
       response.encryptedCookie('refresh_token', access_token.refreshToken)
     }
     return response.redirect('/')

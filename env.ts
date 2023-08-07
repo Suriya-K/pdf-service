@@ -29,5 +29,5 @@ export default Env.rules({
   GOOGLE_CLIENT_ID: Env.schema.string(),
   GOOGLE_CLIENT_SECRET: Env.schema.string(),
   GOOGLE_CALLBACK_URL: Env.schema.string(),
-  CLIENT_DOMAIN: Env.schema.string(),
+  GOOGLE_REFRESH_TOKEN: Env.schema.string(),
 })
