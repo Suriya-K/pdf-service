@@ -22,7 +22,7 @@ export default class DcvHealthsController {
     }
   }
 
-  public async getLists({ request, response }: HttpContextContract) {
+  public async getLists({ response }: HttpContextContract) {
     try {
       let ref_token = Env.get('GOOGLE_REFRESH_TOKEN')
       let token = ''
