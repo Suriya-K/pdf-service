@@ -2,7 +2,6 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import csvtojson from 'csvtojson'
 import { google } from 'googleapis'
 import GoogleCloudPlatformsController from './GoogleCloudPlatformsController'
-import Env from '@ioc:Adonis/Core/Env'
 
 export default class DcvHealthsController {
   private storage_dcv_healths_id = '1hgRPKdrrCTqMxuEXwdgF9dMqWhb9VbAL'

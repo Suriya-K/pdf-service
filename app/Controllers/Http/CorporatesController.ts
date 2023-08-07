@@ -115,7 +115,7 @@ export default class CorporatesController {
     })
   }
 
-  public async getAll({ request, response }: HttpContextContract) {
+  public async getAll({ response }: HttpContextContract) {
     try {
       const token = await GoogleCloudPlatformsController.handleRefeshAccessToken()
 
