@@ -4,7 +4,7 @@ import Env from '@ioc:Adonis/Core/Env'
 
 export default class GoogleCloudPlatformsController {
   public redirect({ ally }: HttpContextContract) {
-    return ally.use('google').stateless().redirect()
+    return ally.use('google').redirect()
   }
 
   public static async get({ response }: HttpContextContract) {
@@ -17,16 +17,26 @@ export default class GoogleCloudPlatformsController {
     }
   }
 
-  public async callback({ ally, response }: HttpContextContract) {
-    const ally_google = ally.use('google').stateless()
+  public async callback({ ally, request, response }: HttpContextContract) {
+    const existing_refresh = await request.encryptedCookie('refresh_token')
+    const existing_access = await request.encryptedCookie('access_token')
 
-    if (ally_google.accessDenied())
-      return response.json({ type: 'error', message: 'Access Denied' })
-    if (ally_google.hasError())
-      return response.json({ type: 'has error', msg: ally_google.getError() })
+    if (!existing_refresh) {
+      const ally_google = ally.use('google').stateless()
 
-    const access_token = await ally_google.accessToken()
-    console.log('token', access_token)
+      if (ally_google.accessDenied())
+        return response.json({ type: 'error', message: 'Access Denied' })
+      if (ally_google.hasError())
+        return response.json({ type: 'has error', msg: ally_google.getError() })
+
+      const access_token = await ally_google.accessToken()
+
+      if (!existing_access || existing_access == undefined) {
+        response.encryptedCookie('access_token', access_token.token, { maxAge: '1h' })
+      }
+      console.log(access_token.refreshToken)
+      response.encryptedCookie('refresh_token', access_token.refreshToken)
+    }
     return response.redirect('/')
   }
 
