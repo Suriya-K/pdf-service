@@ -43,11 +43,12 @@ export default class GoogleCloudPlatformsController {
 
   public static async handleRefeshAccessToken() {
     try {
-      const ref_token = Env.get('G')
+      const ref_token = Env.get('GOOGLE_REFRESH_TOKEN')
       const oauth2Client = new google.auth.OAuth2(
         Env.get('GOOGLE_CLIENT_ID'),
         Env.get('GOOGLE_CLIENT_SECRET')
       )
+      console.log('handle token', ref_token)
       oauth2Client.setCredentials({ refresh_token: ref_token })
       const new_access_token = await oauth2Client.refreshAccessToken()
 
