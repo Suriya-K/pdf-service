@@ -4,7 +4,7 @@ import Env from '@ioc:Adonis/Core/Env'
 
 export default class GoogleCloudPlatformsController {
   public redirect({ ally }: HttpContextContract) {
-    return ally.use('google').redirect()
+    return ally.use('google').stateless().redirect()
   }
 
   public static async get({ response }: HttpContextContract) {
