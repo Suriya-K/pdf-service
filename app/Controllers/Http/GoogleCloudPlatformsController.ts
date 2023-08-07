@@ -23,6 +23,7 @@ export default class GoogleCloudPlatformsController {
 
     if (!existing_refresh) {
       const ally_google = ally.use('google').stateless()
+      console.log(ally_google)
 
       if (ally_google.accessDenied())
         return response.json({ type: 'error', message: 'Access Denied' })
@@ -42,7 +43,7 @@ export default class GoogleCloudPlatformsController {
 
   public static async handleRefeshAccessToken() {
     try {
-      const ref_token = Env.get('GOOGLE_REFRESH_TOKEN')
+      const ref_token = Env.get('G')
       const oauth2Client = new google.auth.OAuth2(
         Env.get('GOOGLE_CLIENT_ID'),
         Env.get('GOOGLE_CLIENT_SECRET')
